@@ -3,6 +3,8 @@
 var socket = io();
 var i;
 
+var userSelected;
+
 /*** Fonctions utiles ***/
 
 /**
@@ -23,7 +25,7 @@ function scrollToBottom() {
 $('#login form').submit(function (e) {
   e.preventDefault();
   var user = {
-    username : $('#login input').val().trim()
+    username: $('#login input').val().trim()
   };
   if (user.username.length > 0) { // Si le champ de connexion n'est pas vide
     socket.emit('user-login', user, function (success) {
@@ -41,7 +43,8 @@ $('#login form').submit(function (e) {
 $('#chat form').submit(function (e) {
   e.preventDefault();
   var message = {
-    text : $('#m').val()
+    text: $('#m').val(),
+    to: userSelected
   };
   $('#m').val('');
   if (message.text.trim().length !== 0) { // Gestion message vide
@@ -70,7 +73,9 @@ socket.on('service-message', function (message) {
  * Connexion d'un nouvel utilisateur
  */
 socket.on('user-login', function (user) {
-  $('#users').append($('<li class="' + user.username + ' new">').html(user.username + '<span class="typing">typing</span>'));
+  $('#users').append($('<li class="' + user.username + ' new">').click(function () {
+    userSelected = user.username;
+  }).html(user.username + '<span class="typing">typing</span>'))
   setTimeout(function () {
     $('#users li.new').removeClass('new');
   }, 1000);

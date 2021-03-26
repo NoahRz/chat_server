@@ -147,11 +147,8 @@ io.on('connection', function (socket) {
     storeMsgToMongo(message);
 
     io.emit('chat-message', message);
-    // Sauvegarde du message
-    messages.push(message);
-    if (messages.length > 150) {
-      messages.splice(0, 1);
-    }
+
+
   });
 
   /**
