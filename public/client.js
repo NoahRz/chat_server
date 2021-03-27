@@ -78,6 +78,8 @@ socket.on('service-message', function (message) {
 socket.on('user-login', function (user) {
   $('#users').append($('<li class="' + user.username + ' new">').click(function () {
     userSelected = user.username;
+    $(".active").removeClass("active");
+    $(this).addClass("active");
   }).html(user.username + '<span class="typing">typing</span>'))
   setTimeout(function () {
     $('#users li.new').removeClass('new');

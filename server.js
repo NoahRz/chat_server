@@ -69,6 +69,47 @@ io.on('connection', function (socket) {
   }
 
   /**
+ * Connexion d'un utilisateur via le formulaire :
+ */
+  socket.on('user-login', function (user, callback) {
+    // Vérification que l'utilisateur n'existe pas
+    var userIndex = -1;
+    for (i = 0; i < users.length; i++) {
+      if (users[i].username === user.username) {
+        userIndex = i;
+      }
+    }
+    if (user !== undefined && userIndex === -1) { // S'il est bien nouveau
+      // Sauvegarde de l'utilisateur et ajout à la liste des connectés
+      loggedUser = user;
+      users.push(loggedUser);
+
+      // sauvegarde du user connecte dans redis
+      storeUserConnectedToRedis(loggedUser);
+
+      socket.join(loggedUser.username);
+
+      // Envoi et sauvegarde des messages de service
+      var userServiceMessage = {
+        text: 'You logged in as "' + loggedUser.username + '"',
+        type: 'login'
+      };
+      var broadcastedServiceMessage = {
+        text: 'User "' + loggedUser.username + '" logged in',
+        type: 'login'
+      };
+      socket.emit('service-message', userServiceMessage);
+      socket.broadcast.emit('service-message', broadcastedServiceMessage);
+      messages.push(broadcastedServiceMessage);
+      // Emission de 'user-login' et appel du callback
+      io.emit('user-login', loggedUser);
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
+
+  /**
    * Déconnexion d'un utilisateur
    */
   socket.on('disconnect', function () {
@@ -100,44 +141,7 @@ io.on('connection', function (socket) {
     }
   });
 
-  /**
-   * Connexion d'un utilisateur via le formulaire :
-   */
-  socket.on('user-login', function (user, callback) {
-    // Vérification que l'utilisateur n'existe pas
-    var userIndex = -1;
-    for (i = 0; i < users.length; i++) {
-      if (users[i].username === user.username) {
-        userIndex = i;
-      }
-    }
-    if (user !== undefined && userIndex === -1) { // S'il est bien nouveau
-      // Sauvegarde de l'utilisateur et ajout à la liste des connectés
-      loggedUser = user;
-      users.push(loggedUser);
 
-      // sauvegarde du user connecte dans redis
-      storeUserConnectedToRedis(loggedUser);
-
-      // Envoi et sauvegarde des messages de service
-      var userServiceMessage = {
-        text: 'You logged in as "' + loggedUser.username + '"',
-        type: 'login'
-      };
-      var broadcastedServiceMessage = {
-        text: 'User "' + loggedUser.username + '" logged in',
-        type: 'login'
-      };
-      socket.emit('service-message', userServiceMessage);
-      socket.broadcast.emit('service-message', broadcastedServiceMessage);
-      messages.push(broadcastedServiceMessage);
-      // Emission de 'user-login' et appel du callback
-      io.emit('user-login', loggedUser);
-      callback(true);
-    } else {
-      callback(false);
-    }
-  });
 
   /**
    * Réception de l'événement 'chat-message' et réémission vers tous les utilisateurs
@@ -149,7 +153,8 @@ io.on('connection', function (socket) {
     // stocke le message dans mongodb
     storeMsgToMongo(message);
 
-    io.emit('chat-message', message);
+    io.to(message.to).to(message.from).emit('chat-message', message);
+    //io.emit('chat-message', message);
 
 
   });
@@ -185,6 +190,11 @@ io.on('connection', function (socket) {
 http.listen(3000, function () {
   console.log('Server is listening on *:3000');
 });
+
+
+
+
+
 
 function storeMsgToMongo(message) {
   MongoClient.connect(url, function (err, client) {

@@ -101,6 +101,12 @@ section#chat #users li.new {
     background: #e67e22;
     color: white;
 }
+
+section#chat #users li.active {
+    background: #2267e6;
+    color: white;
+    border: #2267e6;
+}
 section#chat #users li {
     padding: 6px 10px;
     margin: 10px 10px;
