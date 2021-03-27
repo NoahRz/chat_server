@@ -3,6 +3,9 @@
 var socket = io();
 var i;
 
+console.log("client ", socket);
+
+
 var userSelected;
 
 /*** Fonctions utiles ***/
@@ -57,7 +60,7 @@ $('#chat form').submit(function (e) {
  * Réception d'un message
  */
 socket.on('chat-message', function (message) {
-  $('#messages').append($('<li>').html('<span class="username">' + message.username + '</span> ' + message.text));
+  $('#messages').append($('<li>').html('<span class="username">' + message.from + '</span> ' + message.text));
   scrollToBottom();
 });
 

@@ -42,6 +42,8 @@ redisClient.on("error", function (error) {
 
 io.on('connection', function (socket) {
 
+  console.log("server", socket);
+
   /**
    * Utilisateur connecté à la socket
    */
@@ -51,6 +53,7 @@ io.on('connection', function (socket) {
    * Emission d'un événement "user-login" pour chaque utilisateur connecté
    */
   for (i = 0; i < users.length; i++) {
+    console.log(users[i]);
     socket.emit('user-login', users[i]);
   }
 
@@ -141,7 +144,7 @@ io.on('connection', function (socket) {
    */
   socket.on('chat-message', function (message) {
     // On ajoute le username au message et on émet l'événement
-    message.username = loggedUser.username;
+    message.from = loggedUser.username;
 
     // stocke le message dans mongodb
     storeMsgToMongo(message);
