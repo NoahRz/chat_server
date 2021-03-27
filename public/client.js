@@ -3,9 +3,7 @@
 var socket = io();
 var i;
 
-console.log("client ", socket);
-
-
+var userLogged;
 var userSelected;
 
 /*** Fonctions utiles ***/
@@ -27,10 +25,9 @@ function scrollToBottom() {
  */
 $('#login form').submit(function (e) {
   e.preventDefault();
-  var user = {
-    username: $('#login input').val().trim()
-  };
-  if (user.username.length > 0) { // Si le champ de connexion n'est pas vide
+  var user = $('#login input').val().trim();
+  if (user.length > 0) { // Si le champ de connexion n'est pas vide
+    userLogged = user;
     socket.emit('user-login', user, function (success) {
       if (success) {
         $('body').removeAttr('id'); // Cache formulaire de connexion
@@ -50,7 +47,7 @@ $('#chat form').submit(function (e) {
     to: userSelected
   };
   $('#m').val('');
-  if (message.text.trim().length !== 0) { // Gestion message vide
+  if (message.text.trim().length !== 0 && message.to != null) { // Gestion message vide
     socket.emit('chat-message', message);
   }
   $('#chat input').focus(); // Focus sur le champ du message
@@ -76,11 +73,13 @@ socket.on('service-message', function (message) {
  * Connexion d'un nouvel utilisateur
  */
 socket.on('user-login', function (user) {
-  $('#users').append($('<li class="' + user.username + ' new">').click(function () {
-    userSelected = user.username;
-    $(".active").removeClass("active");
-    $(this).addClass("active");
-  }).html(user.username + '<span class="typing">typing</span>'))
+  $('#users').append($('<li class="' + user + ' new">').click(function () {
+    if (userLogged != user) {
+      userSelected = user;
+      $(".active").removeClass("active");
+      $(this).addClass("active");
+    }
+  }).html(user + '<span class="typing">typing</span>'))
   setTimeout(function () {
     $('#users li.new').removeClass('new');
   }, 1000);
@@ -90,7 +89,7 @@ socket.on('user-login', function (user) {
  * Déconnexion d'un utilisateur
  */
 socket.on('user-logout', function (user) {
-  var selector = '#users li.' + user.username;
+  var selector = '#users li.' + user;
   $(selector).remove();
 });
 
@@ -124,6 +123,6 @@ $('#m').keyup(function () {
 socket.on('update-typing', function (typingUsers) {
   $('#users li span.typing').hide();
   for (i = 0; i < typingUsers.length; i++) {
-    $('#users li.' + typingUsers[i].username + ' span.typing').show();
+    $('#users li.' + typingUsers[i] + ' span.typing').show();
   }
 });

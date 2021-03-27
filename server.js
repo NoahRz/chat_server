@@ -7,25 +7,6 @@ var i;
 //Use chalk to add colours on the console
 var chalk = require('chalk');
 
-/**
- * Gestion des requêtes HTTP des utilisateurs en leur renvoyant les fichiers du dossier 'public'
- */
-app.use('/', express.static(__dirname + '/public'));
-
-/**
- * Liste des utilisateurs connectés
- */
-var users = [];
-
-/**
- * Historique des messages
- */
-var messages = [];
-
-/**
- * Liste des utilisateurs en train de saisir un message
- */
-var typingUsers = [];
 
 // set up mongo
 var MongoClient = require('mongodb').MongoClient;
@@ -40,9 +21,29 @@ redisClient.on("error", function (error) {
 });
 
 
+/**
+ * Gestion des requêtes HTTP des utilisateurs en leur renvoyant les fichiers du dossier 'public'
+ */
+app.use('/', express.static(__dirname + '/public'));
+
+
+
+
+/**
+ * Historique des messages
+ */
+var messages = [];
+
+/**
+ * Liste des utilisateurs en train de saisir un message
+ */
+var typingUsers = [];
+
+
+
+
 io.on('connection', function (socket) {
 
-  console.log("server", socket);
 
   /**
    * Utilisateur connecté à la socket
@@ -50,12 +51,27 @@ io.on('connection', function (socket) {
   var loggedUser;
 
   /**
+  * Liste des utilisateurs connectés from redis
+  */
+  var loggedUsers = [];
+
+  redisClient.smembers("loggedUsers", function (err, users) {
+    loggedUsers = users;
+    console.log(loggedUsers);
+    /**
+  * Emission d'un événement "user-login" pour chaque utilisateur connecté
+  */
+    for (i = 0; i < loggedUsers.length; i++) {
+      socket.emit('user-login', loggedUsers[i]);
+    }
+  });
+
+  /**
    * Emission d'un événement "user-login" pour chaque utilisateur connecté
    */
-  for (i = 0; i < users.length; i++) {
-    console.log(users[i]);
-    socket.emit('user-login', users[i]);
-  }
+  /*for (i = 0; i < loggedUsers.length; i++) {
+    socket.emit('user-login', loggedUsers[i]);
+  }*/
 
   /** 
    * Emission d'un événement "chat-message" pour chaque message de l'historique
@@ -74,28 +90,29 @@ io.on('connection', function (socket) {
   socket.on('user-login', function (user, callback) {
     // Vérification que l'utilisateur n'existe pas
     var userIndex = -1;
-    for (i = 0; i < users.length; i++) {
-      if (users[i].username === user.username) {
+    for (i = 0; i < loggedUsers.length; i++) {
+      if (loggedUsers[i] === user) {
         userIndex = i;
       }
     }
     if (user !== undefined && userIndex === -1) { // S'il est bien nouveau
       // Sauvegarde de l'utilisateur et ajout à la liste des connectés
       loggedUser = user;
-      users.push(loggedUser);
+
+      //users.push(loggedUser);
 
       // sauvegarde du user connecte dans redis
       storeUserConnectedToRedis(loggedUser);
 
-      socket.join(loggedUser.username);
+      socket.join(loggedUser);
 
       // Envoi et sauvegarde des messages de service
       var userServiceMessage = {
-        text: 'You logged in as "' + loggedUser.username + '"',
+        text: 'You logged in as "' + loggedUser + '"',
         type: 'login'
       };
       var broadcastedServiceMessage = {
-        text: 'User "' + loggedUser.username + '" logged in',
+        text: 'User "' + loggedUser + '" logged in',
         type: 'login'
       };
       socket.emit('service-message', userServiceMessage);
@@ -116,23 +133,20 @@ io.on('connection', function (socket) {
     if (loggedUser !== undefined) {
       // Broadcast d'un 'service-message'
       var serviceMessage = {
-        text: 'User "' + loggedUser.username + '" disconnected',
+        text: 'User "' + loggedUser + '" disconnected',
         type: 'logout'
       };
       socket.broadcast.emit('service-message', serviceMessage);
-      // Suppression de la liste des connectés
-      var userIndex = users.indexOf(loggedUser);
-      if (userIndex !== -1) {
-        users.splice(userIndex, 1);
-      }
 
       // Suppresion de l'utilisateur de Redis
       removeUserConnectedFromRedis(loggedUser);
 
       // Ajout du message à l'historique
       messages.push(serviceMessage);
+
       // Emission d'un 'user-logout' contenant le user
       io.emit('user-logout', loggedUser);
+
       // Si jamais il était en train de saisir un texte, on l'enlève de la liste
       var typingUserIndex = typingUsers.indexOf(loggedUser);
       if (typingUserIndex !== -1) {
@@ -148,15 +162,13 @@ io.on('connection', function (socket) {
    */
   socket.on('chat-message', function (message) {
     // On ajoute le username au message et on émet l'événement
-    message.from = loggedUser.username;
+    message.from = loggedUser;
 
     // stocke le message dans mongodb
     storeMsgToMongo(message);
 
     io.to(message.to).to(message.from).emit('chat-message', message);
     //io.emit('chat-message', message);
-
-
   });
 
   /**
@@ -209,9 +221,9 @@ function storeMsgToMongo(message) {
 };
 
 function storeUserConnectedToRedis(loggedUser) {
-  redisClient.sadd("loggedUsers", loggedUser.username);
+  redisClient.sadd("loggedUsers", loggedUser);
 };
 
 function removeUserConnectedFromRedis(loggedUser) {
-  redisClient.srem("loggedUsers", loggedUser.username);
+  redisClient.srem("loggedUsers", loggedUser);
 };
