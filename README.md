@@ -21,7 +21,7 @@ mongod --dbpath ./data
 
 start redis server
 ```
-cd redis-6.0.10/
+cd redis-x.x.xx/          (complete with your version of redis)
 src/redis-server
 ```
 
