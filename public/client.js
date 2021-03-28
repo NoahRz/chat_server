@@ -93,37 +93,3 @@ socket.on('user-logout', function (user) {
   var selector = '#users li.' + user;
   $(selector).remove();
 });
-
-/**
- * Détection saisie utilisateur
- */
-var typingTimer;
-var isTyping = false;
-
-$('#m').keypress(function () {
-  clearTimeout(typingTimer);
-  if (!isTyping) {
-    socket.emit('start-typing');
-    isTyping = true;
-  }
-});
-
-$('#m').keyup(function () {
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(function () {
-    if (isTyping) {
-      socket.emit('stop-typing');
-      isTyping = false;
-    }
-  }, 500);
-});
-
-/**
- * Gestion saisie des autres utilisateurs
- */
-socket.on('update-typing', function (typingUsers) {
-  $('#users li span.typing').hide();
-  for (i = 0; i < typingUsers.length; i++) {
-    $('#users li.' + typingUsers[i] + ' span.typing').show();
-  }
-});

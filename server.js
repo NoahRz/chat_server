@@ -31,13 +31,6 @@ app.use('/', express.static(__dirname + '/public'));
  */
 var messages = [];
 
-/**
- * Liste des utilisateurs en train de saisir un message
- */
-var typingUsers = [];
-
-
-
 
 io.on('connection', function (socket) {
 
@@ -153,30 +146,6 @@ io.on('connection', function (socket) {
 
     io.to(message.to).to(message.from).emit('chat-message', message);
     //io.emit('chat-message', message);
-  });
-
-  /**
-   * Réception de l'événement 'start-typing'
-   * L'utilisateur commence à saisir son message
-   */
-  socket.on('start-typing', function () {
-    // Ajout du user à la liste des utilisateurs en cours de saisie
-    if (typingUsers.indexOf(loggedUser) === -1) {
-      typingUsers.push(loggedUser);
-    }
-    io.emit('update-typing', typingUsers);
-  });
-
-  /**
-   * Réception de l'événement 'stop-typing'
-   * L'utilisateur a arrêter de saisir son message
-   */
-  socket.on('stop-typing', function () {
-    var typingUserIndex = typingUsers.indexOf(loggedUser);
-    if (typingUserIndex !== -1) {
-      typingUsers.splice(typingUserIndex, 1);
-    }
-    io.emit('update-typing', typingUsers);
   });
 
   /**
