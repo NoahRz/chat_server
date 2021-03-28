@@ -20,13 +20,10 @@ redisClient.on("error", function (error) {
   console.error(error);
 });
 
-
 /**
  * Gestion des requêtes HTTP des utilisateurs en leur renvoyant les fichiers du dossier 'public'
  */
 app.use('/', express.static(__dirname + '/public'));
-
-
 
 
 /**
@@ -44,7 +41,6 @@ var typingUsers = [];
 
 io.on('connection', function (socket) {
 
-
   /**
    * Utilisateur connecté à la socket
    */
@@ -57,25 +53,17 @@ io.on('connection', function (socket) {
 
   redisClient.smembers("loggedUsers", function (err, users) {
     loggedUsers = users;
-    console.log(loggedUsers);
-    /**
-  * Emission d'un événement "user-login" pour chaque utilisateur connecté
-  */
+
+    // Emission d'un événement "user-login" pour chaque utilisateur connecté
     for (i = 0; i < loggedUsers.length; i++) {
       socket.emit('user-login', loggedUsers[i]);
     }
   });
 
-  /**
-   * Emission d'un événement "user-login" pour chaque utilisateur connecté
-   */
-  /*for (i = 0; i < loggedUsers.length; i++) {
-    socket.emit('user-login', loggedUsers[i]);
-  }*/
-
   /** 
    * Emission d'un événement "chat-message" pour chaque message de l'historique
    */
+
   for (i = 0; i < messages.length; i++) {
     if (messages[i].username !== undefined) {
       socket.emit('chat-message', messages[i]);
@@ -99,8 +87,6 @@ io.on('connection', function (socket) {
       // Sauvegarde de l'utilisateur et ajout à la liste des connectés
       loggedUser = user;
 
-      //users.push(loggedUser);
-
       // sauvegarde du user connecte dans redis
       storeUserConnectedToRedis(loggedUser);
 
@@ -117,7 +103,7 @@ io.on('connection', function (socket) {
       };
       socket.emit('service-message', userServiceMessage);
       socket.broadcast.emit('service-message', broadcastedServiceMessage);
-      messages.push(broadcastedServiceMessage);
+
       // Emission de 'user-login' et appel du callback
       io.emit('user-login', loggedUser);
       callback(true);
@@ -141,8 +127,6 @@ io.on('connection', function (socket) {
       // Suppresion de l'utilisateur de Redis
       removeUserConnectedFromRedis(loggedUser);
 
-      // Ajout du message à l'historique
-      messages.push(serviceMessage);
 
       // Emission d'un 'user-logout' contenant le user
       io.emit('user-logout', loggedUser);
@@ -194,6 +178,15 @@ io.on('connection', function (socket) {
     }
     io.emit('update-typing', typingUsers);
   });
+
+  /**
+   * load previous messages of user
+   */
+  socket.on('load-previous-messages', function (user) {
+    loadMsgFromMongo(user, socket);
+  });
+
+
 });
 
 /**
@@ -202,11 +195,6 @@ io.on('connection', function (socket) {
 http.listen(3000, function () {
   console.log('Server is listening on *:3000');
 });
-
-
-
-
-
 
 function storeMsgToMongo(message) {
   MongoClient.connect(url, function (err, client) {
@@ -227,3 +215,17 @@ function storeUserConnectedToRedis(loggedUser) {
 function removeUserConnectedFromRedis(loggedUser) {
   redisClient.srem("loggedUsers", loggedUser);
 };
+
+function loadMsgFromMongo(user, socket) {
+  MongoClient.connect(url, function (err, client) {
+    if (err) throw err;
+    var db = client.db("chat_server");
+    db.collection("messages").find({ $or: [{ from: user }, { to: user }] }).toArray(function (err, messages) { // vérifier l'ordre des messages (peut être envisagé de mettre une date)
+      if (err) throw err;
+      for (message in messages) {
+        socket.emit('chat-message', messages[message]);
+      }
+      client.close();
+    });
+  });
+}

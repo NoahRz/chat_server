@@ -32,6 +32,7 @@ $('#login form').submit(function (e) {
       if (success) {
         $('body').removeAttr('id'); // Cache formulaire de connexion
         $('#chat input').focus(); // Focus sur le champ du message
+        socket.emit('load-previous-messages', user);
       }
     });
   }
