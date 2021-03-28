@@ -151,8 +151,8 @@ io.on('connection', function (socket) {
   /**
    * load previous messages of user
    */
-  socket.on('load-previous-messages', function (user) {
-    loadMsgFromMongo(user, socket);
+  socket.on('load-previous-messages', function (user1, user2) {
+    loadMsgFromMongo(user1, user2, socket);
   });
 
 
@@ -185,11 +185,11 @@ function removeUserConnectedFromRedis(loggedUser) {
   redisClient.srem("loggedUsers", loggedUser);
 };
 
-function loadMsgFromMongo(user, socket) {
+function loadMsgFromMongo(user1, user2, socket) {
   MongoClient.connect(url, function (err, client) {
     if (err) throw err;
     var db = client.db("chat_server");
-    db.collection("messages").find({ $or: [{ from: user }, { to: user }] }).toArray(function (err, messages) { // vérifier l'ordre des messages (peut être envisagé de mettre une date)
+    db.collection("messages").find({ $or: [{ from: user1, to: user2 }, { from: user2, to: user1 }] }).toArray(function (err, messages) { // vérifier l'ordre des messages (peut être envisagé de mettre une date)
       if (err) throw err;
       for (message in messages) {
         socket.emit('chat-message', messages[message]);

@@ -32,7 +32,6 @@ $('#login form').submit(function (e) {
       if (success) {
         $('body').removeAttr('id'); // Cache formulaire de connexion
         $('#chat input').focus(); // Focus sur le champ du message
-        socket.emit('load-previous-messages', user);
       }
     });
   }
@@ -58,7 +57,7 @@ $('#chat form').submit(function (e) {
  * Réception d'un message
  */
 socket.on('chat-message', function (message) {
-  $('#messages').append($('<li>').html('<span class="username">' + message.from + '</span> ' + message.text));
+  $('#messages').append($('<li class="message">').html('<span class="username">' + message.from + '</span> ' + message.text));
   scrollToBottom();
 });
 
@@ -76,9 +75,13 @@ socket.on('service-message', function (message) {
 socket.on('user-login', function (user) {
   $('#users').append($('<li class="' + user + ' new">').click(function () {
     if (userLogged != user) {
+      console.log("hello3");
       userSelected = user;
       $(".active").removeClass("active");
       $(this).addClass("active");
+      var selector = 'li.message'; // enlève les messages présents
+      $(selector).remove();
+      socket.emit('load-previous-messages', userLogged, userSelected);
     }
   }).html(user + '<span class="typing">typing</span>'))
   setTimeout(function () {
