@@ -102,6 +102,15 @@ section#chat #users li.new {
     color: white;
 }
 
+section#chat #users li.disconnected {
+    padding: 6px 10px;
+    margin: 10px 10px;
+    border-radius: 5px;
+    transition: all 0.5s;
+    color: black;
+    border: 1px solid #797979;
+}
+
 section#chat #users li.active {
     background: #2267e6;
     color: white;

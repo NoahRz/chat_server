@@ -25,15 +25,13 @@ function scrollToBottom() {
  */
 $('#login form').submit(function (e) {
   e.preventDefault();
-  var user = $('#login input').val().trim();
-  if (user.length > 0) { // Si le champ de connexion n'est pas vide
-    userLogged = user;
-    socket.emit('user-login', user, function (success) {
-      if (success) {
-        $('body').removeAttr('id'); // Cache formulaire de connexion
-        $('#chat input').focus(); // Focus sur le champ du message
-      }
-    });
+  var user = {
+    username: $('#login input').val().trim()
+  };
+  if (user.username.length > 0) { // Si le champ de connexion n'est pas vide
+    // on inscrit l'utilisateur à la liste si n'est pas inscrit
+    signUpUser(socket, user);
+    signInUser(socket, user);
   }
 });
 
@@ -69,13 +67,10 @@ socket.on('service-message', function (message) {
   scrollToBottom();
 });
 
-/**
- * Connexion d'un nouvel utilisateur
- */
-socket.on('user-login', function (user) {
-  $('#users').append($('<li class="' + user + ' new">').click(function () {
+socket.on('load-user', function (user) {
+  $('#users').append($('<li id="' + user + '" class="disconnected">' + user + '</li>'))
+  $('#' + user).click(function () {
     if (userLogged != user) {
-      console.log("hello3");
       userSelected = user;
       $(".active").removeClass("active");
       $(this).addClass("active");
@@ -83,7 +78,17 @@ socket.on('user-login', function (user) {
       $(selector).remove();
       socket.emit('load-previous-messages', userLogged, userSelected);
     }
-  }).html(user + '<span class="typing">typing</span>'))
+  })
+});
+
+/**
+ * Connexion d'un nouvel utilisateur
+ */
+socket.on('user-login', function (user) {
+  console.log("user-login");
+  $('#' + user).removeClass("disconnected");
+  console.log("remove class");
+  $('#' + user).addClass('new');
   setTimeout(function () {
     $('#users li.new').removeClass('new');
   }, 1000);
@@ -94,5 +99,24 @@ socket.on('user-login', function (user) {
  */
 socket.on('user-logout', function (user) {
   var selector = '#users li.' + user;
-  $(selector).remove();
+  $(selector).addClass('disconnected');
 });
+
+
+
+
+
+
+function signUpUser(socket, user) {
+  socket.emit('user-signup', user);
+}
+
+function signInUser(socket, user) {
+  socket.emit('user-login', user, function (success) {
+    if (success) {
+      userLogged = user.username;
+      $('body').removeAttr('id'); // Cache formulaire de connexion
+      $('#chat input').focus(); // Focus sur le champ du message
+    }
+  });
+}
