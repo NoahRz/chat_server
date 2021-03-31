@@ -69,6 +69,8 @@ io.on('connection', function (socket) {
         // sauvegarde du user connecte dans redis
         storeUserConnectedToRedis(loggedUser);
 
+        loadUserConnectedFromRedisToClient(socket)
+
         socket.join(loggedUser);
 
         // Envoi et sauvegarde des messages de service
@@ -84,7 +86,6 @@ io.on('connection', function (socket) {
         socket.broadcast.emit('service-message', broadcastedServiceMessage);
 
         // Emission de 'user-login' et appel du callback
-        console.log("loggedUsers", loggedUser);
         io.emit('user-login', loggedUser);
         callback(true);
       } else {
@@ -212,7 +213,7 @@ function userAlreadyLoggedIn(username) {
 function loadUserConnectedFromRedisToClient(socket) {
   redisClient.smembers("loggedUsers", function (err, usersConnected) {
     for (i = 0; i < usersConnected.length; i++) {
-      socket.emit('user-login', usersConnected[i].username);
+      socket.emit('user-login', usersConnected[i]);
     }
   });
 }
