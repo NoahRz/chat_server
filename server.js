@@ -4,7 +4,6 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var i;
 
-
 // set up mongo
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27020/";
@@ -16,7 +15,6 @@ MongoClient.connect(url, { useUnifiedTopology: true }, function (err, client) {
   console.log("Connected successfully to server");
   db = client.db(dbName);
 });
-
 
 //Use chalk to add colours on the console
 var chalk = require('chalk');
@@ -30,7 +28,7 @@ redisClient.on("error", function (error) {
 });
 
 /**
- * Gestion des requêtes HTTP des utilisateurs en leur renvoyant les fichiers du dossier 'public'
+ * Management of users' HTTP requests by returning files from the 'public' folder
  */
 app.use('/', express.static(__dirname + '/public'));
 
@@ -38,7 +36,7 @@ app.use('/', express.static(__dirname + '/public'));
 io.on('connection', function (socket) {
 
   /**
-   * Utilisateur connecté à la socket
+   * User connected to the socket
    */
   var loggedUser;
 
@@ -74,17 +72,9 @@ io.on('connection', function (socket) {
 
         socket.join(loggedUser);
 
-        // Envoi et sauvegarde des messages de service
-        var userServiceMessage = {
-          text: 'You logged in as "' + loggedUser + '"',
-          type: 'login'
-        };
-        var broadcastedServiceMessage = {
-          text: 'User "' + loggedUser + '" logged in',
-          type: 'login'
-        };
-        socket.emit('service-message', userServiceMessage);
-        socket.broadcast.emit('service-message', broadcastedServiceMessage);
+        // Envoi des messages de service
+        sendServiceMessage(socket, loggedUser, 'login');
+        sendServiceMessage(socket, loggedUser, 'login', broadcast = true);
 
         // Emission de 'user-login' et appel du callback
         io.emit('user-login', loggedUser);
@@ -101,20 +91,16 @@ io.on('connection', function (socket) {
   socket.on('disconnect', function () {
     if (loggedUser !== undefined) {
       // Broadcast d'un 'service-message'
-      var serviceMessage = {
-        text: 'User "' + loggedUser + '" disconnected',
-        type: 'logout'
-      };
-      socket.broadcast.emit('service-message', serviceMessage);
+      sendServiceMessage(socket, loggedUser, 'logout', broadcast = true);
 
       // Suppresion de l'utilisateur de Redis
       removeUserConnectedFromRedis(loggedUser);
-
 
       // Emission d'un 'user-logout' contenant le user
       io.emit('user-logout', loggedUser);
     }
   });
+
   /**
    * Réception de l'événement 'chat-message' et réémission vers tous les utilisateurs
    */
@@ -214,4 +200,31 @@ function loadUserConnectedFromRedisToClient(socket) {
       socket.emit('user-login', usersConnected[i]);
     }
   });
+}
+
+function sendServiceMessage(socket, loggedUser, type, broadcast = false) {
+  if (broadcast) {
+    if (type == 'login') {
+      var broadcastedServiceMessage = {
+        text: 'User "' + loggedUser + '" logged in',
+        type: type
+      };
+      socket.broadcast.emit('service-message', broadcastedServiceMessage);
+    }
+    if (type == 'logout') {
+      var serviceMessage = {
+        text: 'User "' + loggedUser + '" disconnected',
+        type: 'logout'
+      };
+      socket.broadcast.emit('service-message', serviceMessage);
+    }
+
+  }
+  else {
+    var userServiceMessage = {
+      text: 'You logged in as "' + loggedUser + '"',
+      type: 'login'
+    };
+    socket.emit('service-message', userServiceMessage);
+  }
 }
