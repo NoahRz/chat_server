@@ -55,7 +55,9 @@ $('#chat form').submit(function (e) {
  * Réception d'un message
  */
 socket.on('chat-message', function (message) {
-  $('#messages').append($('<li class="message">').html('<span class="username">' + message.from + '</span> ' + message.text));
+  if (message.from == userSelected || message.to == userSelected) {
+    $('#messages').append($('<li class="message">').html('<span class="username">' + message.from + '</span> ' + message.text));
+  }
   scrollToBottom();
 });
 
