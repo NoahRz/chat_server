@@ -11,7 +11,7 @@ var url = "mongodb://localhost:27020/";
 let db;
 const dbName = "chat_server";
 
-MongoClient.connect(url, function (err, client) {
+MongoClient.connect(url, { useUnifiedTopology: true }, function (err, client) {
   if (err) throw err;
   console.log("Connected successfully to server");
   db = client.db(dbName);
