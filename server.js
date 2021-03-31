@@ -42,8 +42,6 @@ io.on('connection', function (socket) {
    */
   var loggedUser;
 
-  loadUsersFromMongoToClient(socket);
-
   loadUserConnectedFromRedisToClient(socket);
 
   /**
@@ -57,6 +55,9 @@ io.on('connection', function (socket) {
   * Connexion d'un utilisateur via le formulaire :
   */
   socket.on('user-login', function (user, callback) {
+
+    loadUsersFromMongoToClient(socket);
+
     // Vérification que l'utilisateur n'est pas déjà connecté
     isUserLoggedIn = userAlreadyLoggedIn(user.username);
 
@@ -125,7 +126,6 @@ io.on('connection', function (socket) {
     storeMsgToMongo(message);
 
     io.to(message.to).to(message.from).emit('chat-message', message);
-    //io.emit('chat-message', message);
   });
 
   /**
@@ -186,8 +186,6 @@ function insertNewUserToMongo(user) {
         if (err) throw err;
         console.log("1 document inserted");
       })
-      // il faut refraichir la liste
-
     }
   })
 }
