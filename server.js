@@ -1,31 +1,15 @@
-var express = require('express');
-var app = express();
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
-var i;
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
-// set up mongo
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27020/";
-let db;
-const dbName = "chat_server";
-
-MongoClient.connect(url, { useUnifiedTopology: true }, function (err, client) {
-  if (err) throw err;
-  console.log("Connected successfully to server");
-  db = client.db(dbName);
-});
 
 //Use chalk to add colours on the console
-var chalk = require('chalk');
+const chalk = require('chalk');
 
-//redis
-const redis = require("redis");
-const redisClient = redis.createClient();
 
-redisClient.on("error", function (error) {
-  console.error(error);
-});
+const redisQuery = require('./redisQuery/index.js')
+const mongoQuery = require('./mongoQuery/index.js')
 
 /**
  * Management of users' HTTP requests by returning files from the 'public' folder
@@ -40,43 +24,43 @@ io.on('connection', function (socket) {
    */
   var loggedUser;
 
-  loadUserConnectedFromRedisToClient(socket);
+  redisQuery.loadUserConnectedFromRedisToClient(socket);
 
   /**
-   * Inscription de l'utilisateur dans mongo
+   * User registration in mongo
    */
   socket.on('user-signup', function (user) {
-    insertNewUserToMongo(user);
+    mongoQuery.insertNewUserToMongo(user);
   });
 
   /**
-  * Connexion d'un utilisateur via le formulaire :
+  * Connection of a user via the form:
   */
   socket.on('user-login', function (user, callback) {
 
-    loadUsersFromMongoToClient(socket);
+    mongoQuery.loadUsersFromMongoToClient(socket);
 
-    // Vérification que l'utilisateur n'est pas déjà connecté
-    isUserLoggedIn = userAlreadyLoggedIn(user.username);
+    // Checking that the user is not already logged in
+    isUserLoggedIn = redisQuery.userAlreadyLoggedIn(user.username);
 
-    isUserRegistered(user, function (userRegistered) {
+    mongoQuery.isUserRegistered(user, function (userRegistered) {
       if (user.username !== undefined && !isUserLoggedIn && userRegistered) { // S'il est bien nouveau
 
-        // Sauvegarde de l'utilisateur et ajout à la liste des connectés
+        // Save the user and add to the connected list
         loggedUser = user.username;
 
-        // sauvegarde du user connecte dans redis
-        storeUserConnectedToRedis(loggedUser);
+        // Saving the logged in user in redis
+        redisQuery.storeUserConnectedToRedis(loggedUser);
 
-        loadUserConnectedFromRedisToClient(socket)
+        redisQuery.loadUserConnectedFromRedisToClient(socket)
 
         socket.join(loggedUser);
 
-        // Envoi des messages de service
+        // Sending service messages
         sendServiceMessage(socket, loggedUser, 'login');
         sendServiceMessage(socket, loggedUser, 'login', broadcast = true);
 
-        // Emission de 'user-login' et appel du callback
+        // Issue of 'user-login' and callback call
         io.emit('user-login', loggedUser);
         callback(true);
       } else {
@@ -86,30 +70,30 @@ io.on('connection', function (socket) {
   });
 
   /**
-   * Déconnexion d'un utilisateur
+   * Logging out of a user
    */
   socket.on('disconnect', function () {
     if (loggedUser !== undefined) {
-      // Broadcast d'un 'service-message'
+      // Broadcast of a 'service-message'
       sendServiceMessage(socket, loggedUser, 'logout', broadcast = true);
 
-      // Suppresion de l'utilisateur de Redis
-      removeUserConnectedFromRedis(loggedUser);
+      // Removing the user from Redis
+      redisQuery.removeUserConnectedFromRedis(loggedUser);
 
-      // Emission d'un 'user-logout' contenant le user
+      // Issue of a 'user-logout' containing the user
       io.emit('user-logout', loggedUser);
     }
   });
 
   /**
-   * Réception de l'événement 'chat-message' et réémission vers tous les utilisateurs
+   * Reception of the 'chat-message' event and re-transmission to all users
    */
   socket.on('chat-message', function (message) {
-    // On ajoute le username au message et on émet l'événement
+
+    //We add the username to the message and we send the event
     message.from = loggedUser;
 
-    // stocke le message dans mongodb
-    storeMsgToMongo(message);
+    mongoQuery.storeMsgToMongo(message);
 
     io.to(message.to).to(message.from).emit('chat-message', message);
   });
@@ -118,89 +102,28 @@ io.on('connection', function (socket) {
    * load previous messages of user
    */
   socket.on('load-previous-messages', function (user1, user2) {
-    loadMsgFromMongo(user1, user2, socket);
+    mongoQuery.loadMsgFromMongo(user1, user2, socket);
   });
 });
 
 /**
- * Lancement du serveur en écoutant les connexions arrivant sur le port 3000
+ * Starting the server by listening for connections arriving on port 3000
  */
 http.listen(3000, function () {
   console.log('Server is listening on *:3000');
 });
 
-function storeMsgToMongo(message) {
-  db.collection("messages").insertOne(message, function (err, res) {
-    if (err) throw err;
-    console.log("1 document inserted");
-  });
-};
 
-function storeUserConnectedToRedis(loggedUser) {
-  redisClient.sadd("loggedUsers", loggedUser);
-};
 
-function removeUserConnectedFromRedis(loggedUser) {
-  redisClient.srem("loggedUsers", loggedUser);
-};
 
-function loadMsgFromMongo(user1, user2, socket) {
-  db.collection("messages").find({ $or: [{ from: user1, to: user2 }, { from: user2, to: user1 }] }).toArray(function (err, messages) { // vérifier l'ordre des messages (peut être envisagé de mettre une date)
-    if (err) throw err;
-    for (message in messages) {
-      socket.emit('chat-message', messages[message]);
-    }
-  });
-}
 
-function loadUsersFromMongoToClient(socket) {
-  console.log("loading users");
-  db.collection("users").find().toArray(function (err, users) {
-    if (err) throw err;
-    for (user in users) {
-      socket.emit('load-user', users[user].username);
-    }
-  });
-}
 
-function insertNewUserToMongo(user) {
-  // vérifie qu'il n'est pas déjà inscrit
-  db.collection("users").findOne(user, function (err, existing_user) {
-    if (err) throw err;
-    if (!existing_user) {
-      db.collection("users").insertOne(user, (err, res) => {
-        if (err) throw err;
-        console.log("1 document inserted");
-      })
-    }
-  })
-}
 
-function isUserRegistered(user, callback) {
-  db.collection("users").find({ username: user.username }).toArray((err, users) => { //findOne pour accélérer le process ?
-    if (err) throw err;
-    callback(users.length > 0);
-  });
-}
 
-function userAlreadyLoggedIn(username) {
-  redisClient.smembers("loggedUsers", function (err, usersConnected) {
-    for (i = 0; i < usersConnected.length; i++) {
-      if (usersConnected[i] === username) {
-        return true
-      }
-    }
-    return false
-  })
-}
 
-function loadUserConnectedFromRedisToClient(socket) {
-  redisClient.smembers("loggedUsers", function (err, usersConnected) {
-    for (i = 0; i < usersConnected.length; i++) {
-      socket.emit('user-login', usersConnected[i]);
-    }
-  });
-}
+
+
+
 
 function sendServiceMessage(socket, loggedUser, type, broadcast = false) {
   if (broadcast) {
@@ -214,7 +137,7 @@ function sendServiceMessage(socket, loggedUser, type, broadcast = false) {
     if (type == 'logout') {
       var serviceMessage = {
         text: 'User "' + loggedUser + '" disconnected',
-        type: 'logout'
+        type: type
       };
       socket.broadcast.emit('service-message', serviceMessage);
     }
@@ -223,7 +146,7 @@ function sendServiceMessage(socket, loggedUser, type, broadcast = false) {
   else {
     var userServiceMessage = {
       text: 'You logged in as "' + loggedUser + '"',
-      type: 'login'
+      type: type
     };
     socket.emit('service-message', userServiceMessage);
   }
