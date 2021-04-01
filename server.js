@@ -30,7 +30,12 @@ io.on('connection', function (socket) {
    * User registration in mongo
    */
   socket.on('user-signup', function (user) {
-    mongoQuery.insertNewUserToMongo(user);
+    mongoQuery.insertNewUserToMongo(user, function (inserted) {
+      if (inserted) {
+        //alert other to refresh their users list
+        mongoQuery.loadUsersFromMongoToClient(io);
+      }
+    });
   });
 
   /**

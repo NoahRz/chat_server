@@ -104,7 +104,10 @@ socket.on('user-logout', function (user) {
   $(selector).addClass('disconnected');
 });
 
-
+socket.on('remove-current-users-list', function () {
+  const selector = '#users li';
+  $(selector).remove();
+})
 
 
 

@@ -1,6 +1,7 @@
 // set up mongo
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://localhost:27020/";
+var url = "mongodb://localhost:27020,localhost:27021,localhost:27022/?replicaSet=rs0";
 let db;
 const dbName = "chat_server";
 
@@ -28,6 +29,7 @@ function loadMsgFromMongo(user1, user2, socket) {
 
 function loadUsersFromMongoToClient(socket) {
     console.log("loading users");
+    socket.emit('remove-current-users-list');
     db.collection("users").find().toArray(function (err, users) {
         if (err) throw err;
         for (user in users) {
@@ -36,7 +38,7 @@ function loadUsersFromMongoToClient(socket) {
     });
 }
 
-function insertNewUserToMongo(user) {
+function insertNewUserToMongo(user, callback) {
     db.collection("users").findOne(user, function (err, existing_user) {
         if (err) throw err;
         if (!existing_user) {
@@ -44,6 +46,9 @@ function insertNewUserToMongo(user) {
                 if (err) throw err;
                 console.log("1 document inserted");
             })
+            callback(true);
+        } else {
+            callback(false);
         }
     })
 }
