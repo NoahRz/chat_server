@@ -14,10 +14,22 @@ npm install
 ```
 
 ## To run the app
-Start mongodb
+Start mongodb and replicaSets
 ```
-mongod --dbpath ./data
+mongod --replSet rs0 --port 27020 --dbpath ./data/r0s1
 ```
+```
+mongod --replSet rs0 --port 27021 --dbpath ./data/r0s2
+```
+```
+mongod --replSet rs0 --port 27022 --dbpath ./data/r0s3
+```
+
+Start the arbiter
+```
+mongod --port 30000 --dbpath ./data/arb --replSet rs0
+```
+
 
 start redis server
 ```
