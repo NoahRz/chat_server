@@ -71,7 +71,7 @@ socket.on('service-message', function (message) {
 });
 
 socket.on('load-user', function (user) {
-  $('#users').append($('<li id="' + user + '" class="disconnected">' + user + '</li>'))
+  $('#users').append($('<li id="' + user + '" class="loggedOut">' + user + '</li>'))
   $('#' + user).click(function () {
     if (userLogged != user) {
       userSelected = user;
@@ -87,9 +87,9 @@ socket.on('load-user', function (user) {
 /**
  * Connexion d'un nouvel utilisateur
  */
-socket.on('user-login', function (user) {
-  console.log("user-login");
-  $('#' + user).removeClass("disconnected");
+socket.on('user-is-logged-in', function (user) {
+  console.log("user-is-logged-in");
+  $('#' + user).removeClass("loggedOut");
   console.log("remove class");
   $('#' + user).addClass('new');
   setTimeout(function () {
@@ -100,14 +100,15 @@ socket.on('user-login', function (user) {
 /**
  * Déconnexion d'un utilisateur
  */
-socket.on('user-logout', function (user) {
+socket.on('user-is-logged-out', function (user) {
   var selector = '#' + user;
-  $(selector).addClass('disconnected');
+  $(selector).addClass('loggedOut');
 });
 
 socket.on('remove-current-users-list', function () {
   const selector = '#users li';
   $(selector).remove();
+  console.log("remove-current-users-list");
 })
 
 

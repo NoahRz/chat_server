@@ -3,13 +3,13 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
-
 //Use chalk to add colours on the console
 const chalk = require('chalk');
 
 
-const redisQuery = require('./redisQuery/index.js')
-const mongoQuery = require('./mongoQuery/index.js')
+const redisQuery = require('./redisQuery/index.js');
+const mongoQuery = require('./mongoQuery/index.js');
+const mongoRedisQuery = require('./mongoRedisQuery.js');
 
 /**
  * Management of users' HTTP requests by returning files from the 'public' folder
@@ -24,7 +24,6 @@ io.on('connection', function (socket) {
    */
   var loggedUser;
 
-  redisQuery.loadUserConnectedFromRedisToClient(socket);
 
   /**
    * User registration in mongo
@@ -40,7 +39,6 @@ io.on('connection', function (socket) {
   */
   socket.on('user-login', function (user, callback) {
 
-    mongoQuery.loadUsersFromMongoToClient(io);
 
     // Checking that the user is not already logged in
     isUserLoggedIn = redisQuery.userAlreadyLoggedIn(user.username);
@@ -54,7 +52,7 @@ io.on('connection', function (socket) {
         // Saving the logged in user in redis
         redisQuery.storeUserConnectedToRedis(loggedUser);
 
-        redisQuery.loadUserConnectedFromRedisToClient(socket)
+        mongoRedisQuery.refreshUsersList(io);
 
         socket.join(loggedUser);
 
@@ -83,7 +81,7 @@ io.on('connection', function (socket) {
       redisQuery.removeUserConnectedFromRedis(loggedUser);
 
       // Issue of a 'user-logout' containing the user
-      io.emit('user-logout', loggedUser);
+      io.emit('user-is-logged-out', loggedUser);
     }
   });
 
@@ -128,7 +126,7 @@ function sendServiceMessage(socket, loggedUser, type, broadcast = false) {
     }
     if (type == 'logout') {
       var serviceMessage = {
-        text: 'User "' + loggedUser + '" disconnected',
+        text: 'User "' + loggedUser + '" is logged out',
         type: type
       };
       socket.broadcast.emit('service-message', serviceMessage);
