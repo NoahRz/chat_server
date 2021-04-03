@@ -30,8 +30,9 @@ $('#login form').submit(function (e) {
   };
   if (user.username.length > 0) { // Si le champ de connexion n'est pas vide
     // on inscrit l'utilisateur à la liste si n'est pas inscrit
-    signUpUser(socket, user);
-    signInUser(socket, user);
+    login(socket, user);
+    // signUpUser(socket, user);
+    // signInUser(socket, user);
   }
 });
 
@@ -112,8 +113,8 @@ socket.on('remove-current-users-list', function () {
 
 
 
-function signUpUser(socket, user) {
-  socket.emit('user-signup', user);
+function signUpUser(socket, user, callback) {
+  socket.emit('user-signup', user, callback);
 }
 
 function signInUser(socket, user) {
@@ -123,5 +124,12 @@ function signInUser(socket, user) {
       $('body').removeAttr('id'); // Cache formulaire de connexion
       $('#chat input').focus(); // Focus sur le champ du message
     }
+  });
+}
+
+const login = async (socket, user) => {
+  const result = await signUpUser(socket, user, function (res) {
+    console.log(res, "login")
+    signInUser(socket, user);
   });
 }

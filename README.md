@@ -30,7 +30,6 @@ Start the arbiter
 mongod --port 30000 --dbpath ./data/arb --replSet rs0
 ```
 
-
 start redis server
 ```
 cd redis-x.x.xx/          (complete with your version of redis)

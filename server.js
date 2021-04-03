@@ -29,13 +29,10 @@ io.on('connection', function (socket) {
   /**
    * User registration in mongo
    */
-  socket.on('user-signup', function (user) {
-    mongoQuery.insertNewUserToMongo(user, function (inserted) {
-      if (inserted) {
-        //alert other to refresh their users list
-        mongoQuery.loadUsersFromMongoToClient(io);
-      }
-    });
+  socket.on('user-signup', function (user, callback) {
+    mongoQuery.insertNewUserToMongo(user, function (res) {
+      callback(res);
+    })
   });
 
   /**
@@ -43,7 +40,7 @@ io.on('connection', function (socket) {
   */
   socket.on('user-login', function (user, callback) {
 
-    mongoQuery.loadUsersFromMongoToClient(socket);
+    mongoQuery.loadUsersFromMongoToClient(io);
 
     // Checking that the user is not already logged in
     isUserLoggedIn = redisQuery.userAlreadyLoggedIn(user.username);
@@ -117,16 +114,6 @@ io.on('connection', function (socket) {
 http.listen(3000, function () {
   console.log('Server is listening on *:3000');
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
