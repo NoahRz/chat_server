@@ -56,8 +56,16 @@ function increaseNbLogged(username) {
     )
 }
 
+function writeConnectionToMongo(username) {
+    db.collection("connections").insertOne({ user: username, loginDate: new Date() }, function (err, res) {
+        if (err) throw err;
+        console.log("1 document inserted");
+    });
+}
+
 exports.storeMsgToMongo = storeMsgToMongo;
 exports.loadMsgFromMongo = loadMsgFromMongo;
 exports.insertNewUserToMongo = insertNewUserToMongo;
 exports.isUserRegistered = isUserRegistered;
 exports.increaseNbLogged = increaseNbLogged;
+exports.writeConnectionToMongo = writeConnectionToMongo;
