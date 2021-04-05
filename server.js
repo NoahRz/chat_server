@@ -48,8 +48,6 @@ io.on('connection', function (socket) {
       isUserLoggedIn = isAlreadyLoggedIn;
     });
 
-    console.log("isUserLoggedIn", isUserLoggedIn);
-
     mongoQuery.isUserRegistered(user, function (userRegistered) {
       if (user.username !== undefined && !isUserLoggedIn && userRegistered) { // S'il est bien nouveau
 
@@ -69,6 +67,9 @@ io.on('connection', function (socket) {
 
         // Issue of 'user-login' and callback call
         io.emit('user-login', loggedUser);
+
+        mongoQuery.increaseNbLogged(loggedUser);
+
         callback(true);
       } else {
         callback(false);

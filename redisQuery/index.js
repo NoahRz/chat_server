@@ -17,10 +17,8 @@ function removeUserConnectedFromRedis(loggedUser) {
 };
 
 function userAlreadyLoggedIn(username, callback) {
-    console.log("username :", username);
     redisClient.smembers("loggedUsers", function (err, usersConnected) {
         for (i = 0; i < usersConnected.length; i++) {
-            console.log(usersConnected[i], username);
             if (usersConnected[i] === username) {
                 callback(true);
                 return true;

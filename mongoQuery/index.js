@@ -49,7 +49,15 @@ function isUserRegistered(user, callback) {
     });
 }
 
+function increaseNbLogged(username) {
+    db.collection("users").update(
+        { username: username },
+        { $inc: { "nbLogged": 1 } }
+    )
+}
+
 exports.storeMsgToMongo = storeMsgToMongo;
 exports.loadMsgFromMongo = loadMsgFromMongo;
 exports.insertNewUserToMongo = insertNewUserToMongo;
 exports.isUserRegistered = isUserRegistered;
+exports.increaseNbLogged = increaseNbLogged;

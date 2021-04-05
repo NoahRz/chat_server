@@ -88,9 +88,7 @@ socket.on('load-user', function (user) {
  * Connexion d'un nouvel utilisateur
  */
 socket.on('user-is-logged-in', function (user) {
-  console.log("user-is-logged-in");
   $('#' + user).removeClass("loggedOut");
-  console.log("remove class");
   $('#' + user).addClass('new');
   setTimeout(function () {
     $('#users li.new').removeClass('new');
@@ -108,7 +106,6 @@ socket.on('user-is-logged-out', function (user) {
 socket.on('remove-current-users-list', function () {
   const selector = '#users li';
   $(selector).remove();
-  console.log("remove-current-users-list");
 })
 
 
