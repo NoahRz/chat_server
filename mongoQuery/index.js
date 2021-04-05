@@ -27,16 +27,6 @@ function loadMsgFromMongo(user1, user2, socket) {
     });
 }
 
-const loadUsersFromMongoToClient = (socket) => {
-    socket.emit('remove-current-users-list');
-    db.collection("users").find().toArray(function (err, users) {
-        if (err) throw err;
-        for (user in users) {
-            socket.emit('load-user', users[user].username);
-        }
-    });
-}
-
 function insertNewUserToMongo(user, callback) {
     db.collection("users").findOne(user, function (err, existing_user) {
         if (err) throw err;
@@ -61,6 +51,5 @@ function isUserRegistered(user, callback) {
 
 exports.storeMsgToMongo = storeMsgToMongo;
 exports.loadMsgFromMongo = loadMsgFromMongo;
-exports.loadUsersFromMongoToClient = loadUsersFromMongoToClient;
 exports.insertNewUserToMongo = insertNewUserToMongo;
 exports.isUserRegistered = isUserRegistered;

@@ -41,7 +41,14 @@ io.on('connection', function (socket) {
 
 
     // Checking that the user is not already logged in
-    isUserLoggedIn = redisQuery.userAlreadyLoggedIn(user.username);
+
+    let isUserLoggedIn;
+
+    redisQuery.userAlreadyLoggedIn(user.username, function (isAlreadyLoggedIn) {
+      isUserLoggedIn = isAlreadyLoggedIn;
+    });
+
+    console.log("isUserLoggedIn", isUserLoggedIn);
 
     mongoQuery.isUserRegistered(user, function (userRegistered) {
       if (user.username !== undefined && !isUserLoggedIn && userRegistered) { // S'il est bien nouveau
