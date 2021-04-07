@@ -1,6 +1,5 @@
 // set up mongo
 var MongoClient = require('mongodb').MongoClient;
-//var url = "mongodb://localhost:27020/";
 var url = "mongodb://localhost:27020,localhost:27021,localhost:27022/?replicaSet=rs0";
 let db;
 const dbName = "chat_server";
@@ -57,10 +56,15 @@ function increaseNbLogged(username) {
 }
 
 function writeConnectionToMongo(username) {
-    db.collection("connections").insertOne({ user: username, loginDate: new Date() }, function (err, res) {
-        if (err) throw err;
-        console.log("1 document inserted");
-    });
+    db.collection("connections").insertOne(
+        {
+            user: username,
+            loginDate: new Date()
+        },
+        function (err, res) {
+            if (err) throw err;
+            console.log("1 document inserted");
+        });
 }
 
 exports.storeMsgToMongo = storeMsgToMongo;

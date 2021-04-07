@@ -9,7 +9,7 @@ const chalk = require('chalk');
 
 const redisQuery = require('./redisQuery/index.js');
 const mongoQuery = require('./mongoQuery/index.js');
-const mongoRedisQuery = require('./mongoRedisQuery.js');
+const mongoRedisQuery = require('./mongoRedisQuery/index.js');
 
 /**
  * Management of users' HTTP requests by returning files from the 'public' folder
