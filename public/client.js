@@ -6,10 +6,10 @@ var i;
 var userLogged;
 var userSelected;
 
-/*** Fonctions utiles ***/
+/*** Useful functions ***/
 
 /**
- * Scroll vers le bas de page si l'utilisateur n'est pas remonté pour lire d'anciens messages
+ * Scroll down the page if the user has not moved up to read old messages
  */
 function scrollToBottom() {
   if ($(window).scrollTop() + $(window).height() + 2 * $('#messages li').last().outerHeight() >= $(document).height()) {
@@ -17,27 +17,25 @@ function scrollToBottom() {
   }
 }
 
-/*** Gestion des événements ***/
+/*** Event management ***/
 
 /**
- * Connexion de l'utilisateur
- * Uniquement si le username n'est pas vide et n'existe pas encore
+ * User login
+ * Only if the username is not empty and the user is not already logged in
  */
 $('#login form').submit(function (e) {
   e.preventDefault();
   var user = {
     username: $('#login input').val().trim()
   };
-  if (user.username.length > 0) { // Si le champ de connexion n'est pas vide
-    // on inscrit l'utilisateur à la liste si n'est pas inscrit
+  if (user.username.length > 0) { // If the login field is not empty
+    // we register the user in the list if it is not registered
     login(socket, user);
-    // signUpUser(socket, user);
-    // signInUser(socket, user);
   }
 });
 
 /**
- * Envoi d'un message
+ * Sending a message
  */
 $('#chat form').submit(function (e) {
   e.preventDefault();
@@ -46,14 +44,14 @@ $('#chat form').submit(function (e) {
     to: userSelected
   };
   $('#m').val('');
-  if (message.text.trim().length !== 0 && message.to != null) { // Gestion message vide
+  if (message.text.trim().length !== 0 && message.to != null) { // Empty message management
     socket.emit('chat-message', message);
   }
-  $('#chat input').focus(); // Focus sur le champ du message
+  $('#chat input').focus(); // Focus on the message field
 });
 
 /**
- * Réception d'un message
+ * Receiving a message
  */
 socket.on('chat-message', function (message) {
   if (message.from == userSelected || message.to == userSelected) {
@@ -63,7 +61,7 @@ socket.on('chat-message', function (message) {
 });
 
 /**
- * Réception d'un message de service
+ * Receiving a service message
  */
 socket.on('service-message', function (message) {
   $('#messages').append($('<li class="' + message.type + '">').html('<span class="info">information</span> ' + message.text));
@@ -77,7 +75,7 @@ socket.on('load-user', function (user) {
       userSelected = user;
       $(".active").removeClass("active");
       $(this).addClass("active");
-      var selector = 'li.message'; // enlève les messages présents
+      var selector = 'li.message'; // remove messages
       $(selector).remove();
       socket.emit('load-previous-messages', userLogged, userSelected);
     }
@@ -85,7 +83,7 @@ socket.on('load-user', function (user) {
 });
 
 /**
- * Connexion d'un nouvel utilisateur
+ * Logging in of a new user
  */
 socket.on('user-is-logged-in', function (user) {
   $('#' + user).removeClass("loggedOut");
@@ -96,7 +94,7 @@ socket.on('user-is-logged-in', function (user) {
 });
 
 /**
- * Déconnexion d'un utilisateur
+ * Logging out of a user
  */
 socket.on('user-is-logged-out', function (user) {
   var selector = '#' + user;
@@ -119,8 +117,8 @@ function signInUser(socket, user) {
   socket.emit('user-login', user, function (success) {
     if (success) {
       userLogged = user.username;
-      $('body').removeAttr('id'); // Cache formulaire de connexion
-      $('#chat input').focus(); // Focus sur le champ du message
+      $('body').removeAttr('id'); // hide login form
+      $('#chat input').focus(); // Focus message field
     }
   });
 }
