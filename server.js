@@ -69,8 +69,6 @@ io.on('connection', function (socket) {
         io.emit('user-login', loggedUser);
 
         mongoQuery.increaseNbLogged(loggedUser);
-        var d = new Date();
-        var n = d.toISOString();
         mongoQuery.writeConnectionToMongo(loggedUser);
 
         callback(true);
@@ -93,6 +91,8 @@ io.on('connection', function (socket) {
 
       // Issue of a 'user-logout' containing the user
       io.emit('user-is-logged-out', loggedUser);
+
+      mongoQuery.writeDeconnectionToMongo(loggedUser);
     }
   });
 

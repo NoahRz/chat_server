@@ -59,12 +59,21 @@ function writeConnectionToMongo(username) {
     db.collection("connections").insertOne(
         {
             user: username,
-            loginDate: new Date()
+            loginDate: new Date(),
+            logoutDate: null
         },
         function (err, res) {
             if (err) throw err;
             console.log("1 document inserted");
         });
+}
+
+function writeDeconnectionToMongo(username) {
+    db.collection("connections").findOneAndUpdate(
+        { "user": username },
+        { $set: { logoutDate: new Date() } },
+        { sort: { $natural: -1 } },
+    )
 }
 
 exports.storeMsgToMongo = storeMsgToMongo;
@@ -73,3 +82,4 @@ exports.insertNewUserToMongo = insertNewUserToMongo;
 exports.isUserRegistered = isUserRegistered;
 exports.increaseNbLogged = increaseNbLogged;
 exports.writeConnectionToMongo = writeConnectionToMongo;
+exports.writeDeconnectionToMongo = writeDeconnectionToMongo;
