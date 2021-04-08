@@ -156,9 +156,9 @@ db.connections.aggregate({$project : {hour : {$hour :"$loginDate"}}}, {$group:{_
 >> OUT
 { "_id" : { "hour" : 17, "count" : 1 } }
 { "_id" : { "hour" : 19, "count" : 1 } }
-
-⚠️ Beware of Timezone (here it is UTC)
 ```
+⚠️ Beware of Timezone (here it is UTC)
+
 
 **Map reduce : Word count in messages**
 ```js
@@ -235,5 +235,5 @@ db.Most_active_periods.find().sort({value:-1})
 { "_id" : "21h - 22h", "value" : 3 }
 { "_id" : "20h - 21h", "value" : 3 }
 
-⚠️ Beware of Timezone (here it is my local Timezone -> UTC +2)
 ```
+⚠️ Beware of Timezone (here it is my local Timezone -> UTC +2)
