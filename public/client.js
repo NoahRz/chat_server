@@ -107,8 +107,6 @@ socket.on('remove-current-users-list', function () {
 })
 
 
-
-
 function signUpUser(socket, user, callback) {
   socket.emit('user-signup', user, callback);
 }

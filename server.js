@@ -3,10 +3,6 @@ const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
-//Use chalk to add colours on the console
-const chalk = require('chalk');
-
-
 const redisQuery = require('./redisQuery/index.js');
 const mongoQuery = require('./mongoQuery/index.js');
 const mongoRedisQuery = require('./mongoRedisQuery/index.js');
