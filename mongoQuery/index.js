@@ -18,7 +18,7 @@ function storeMsgToMongo(message) {
 };
 
 function loadMsgFromMongo(user1, user2, socket) {
-    db.collection("messages").find({ $or: [{ from: user1, to: user2 }, { from: user2, to: user1 }] }).toArray(function (err, messages) { // vérifier l'ordre des messages (peut être envisagé de mettre une date)
+    db.collection("messages").find({ $or: [{ from: user1, to: user2 }, { from: user2, to: user1 }] }).toArray(function (err, messages) {
         if (err) throw err;
         for (message in messages) {
             socket.emit('chat-message', messages[message]);
