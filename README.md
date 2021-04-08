@@ -70,7 +70,7 @@ connections : {
 
 ## Interesting Queries
 
-**Users who receives the highest number of message**
+**Users who receive the highest number of messages**
 ```js
 >> IN
 db.messages.aggregate({$group:{_id: "$to", nb_msg_received : {$sum: 1}}}, {$sort:{nb_msg_received:-1}})
@@ -82,7 +82,7 @@ db.messages.aggregate({$group:{_id: "$to", nb_msg_received : {$sum: 1}}}, {$sor
 { "_id" : "jason", "nb_msg_received" : 3 }
 
 ```
-**Users who send the highest number of message**
+**Users who send the highest number of messages**
 ```js
 >> IN
 db.messages.aggregate({$group:{_id: "$from", nb_msg_sent : {$sum: 1}}}, {$sort:{nb_msg_sent:-1}})
@@ -93,7 +93,7 @@ db.messages.aggregate({$group:{_id: "$from", nb_msg_sent : {$sum: 1}}}, {$sort:
 { "_id" : "bob", "nb_msg_sent" : 5 }
 { "_id" : "george", "nb_msg_sent" : 4 }
 ```
-**Users who has the highest number of log-in**
+**Users who have the highest number of log-in**
 ```js
 >> IN
 db.users.find().sort({"nbLogged":-1})
@@ -104,7 +104,7 @@ db.users.find().sort({"nbLogged":-1})
 { "_id" : ObjectId("606f3f6499757a071b203393"), "username" : "jason", "nbLogged" : 1 }
 { "_id" : ObjectId("606f3f8599757a071b203395"), "username" : "george", "nbLogged" : 1 }
 ```
-**Users who has the lowest number of log-in**
+**Users who have the lowest number of log-in**
 ```js
 >> IN
 db.users.find().sort({"nbLogged":1})
@@ -123,7 +123,7 @@ db.users.count()
 >> OUT
 4
 ```
-**Users who speaks the most to different people** (aka most active user)
+**Users who speak the most to different people** (aka most active user)
 ```js
 >> IN
 db.messages.aggregate({$group:{_id: {from:"$from", to:"$to"}}}, {$group:{_id: "$_id.from", nb_dinstinct_receiver :  {$sum:1}}}, {$sort:{nb_dinstinct_receiver: -1}})
@@ -134,7 +134,7 @@ db.messages.aggregate({$group:{_id: {from:"$from", to:"$to"}}}, {$group:{_id: 
 { "_id" : "noah", "nb_dinstinct_receiver" : 2 }
 { "_id" : "george", "nb_dinstinct_receiver" : 2 }
 ```
-**Users who is spoken the most from different people** (aka most requested user)
+**Users who are spoken the most from different people** (aka most requested user)
 ```js
 >> IN
 db.messages.aggregate({$group:{_id: {to:"$to", from:"$from"}}}, {$group:{_id: "$_id.to", nb_dinstinct_sender :  {$sum:1}}}, {$sort:{nb_dinstinct_sender:-1}})
