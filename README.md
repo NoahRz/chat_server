@@ -126,7 +126,7 @@ db.users.count()
 >> OUT
 4
 ```
-**Users who speak the most to different people** (aka most active user)
+**Users who speak the most to different people** (in other words : **most active users**)
 ```js
 >> IN
 db.messages.aggregate({$group:{_id: {from:"$from", to:"$to"}}}, {$group:{_id: "$_id.from", nb_dinstinct_receiver :  {$sum:1}}}, {$sort:{nb_dinstinct_receiver: -1}})
@@ -137,7 +137,7 @@ db.messages.aggregate({$group:{_id: {from:"$from", to:"$to"}}}, {$group:{_id: 
 { "_id" : "noah", "nb_dinstinct_receiver" : 2 }
 { "_id" : "george", "nb_dinstinct_receiver" : 2 }
 ```
-**Users who are spoken the most from different people** (aka most requested user)
+**Users who are spoken the most from different people** (in other words : **most requested users**)
 ```js
 >> IN
 db.messages.aggregate({$group:{_id: {to:"$to", from:"$from"}}}, {$group:{_id: "$_id.to", nb_dinstinct_sender :  {$sum:1}}}, {$sort:{nb_dinstinct_sender:-1}})
