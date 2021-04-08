@@ -14,6 +14,9 @@ npm install
 ```
 
 ## To run the app
+
+⚠️ Prerequisite : you would have to configure the replicaSets
+
 Start mongodb and replicaSets
 ```
 mongod --replSet rs0 --port 27020 --dbpath ./data/r0s1
