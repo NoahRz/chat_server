@@ -46,6 +46,31 @@ node server.js
 
 Go to localhost:3000
 
+## Users instructions
+
+### Sign in
+First you have to sign in using a unique username. 
+
+**NB**:
+* You cannot sign in if you are already signed in with another session.
+
+### Send messages
+* 1) Select the user you want to send the message to (his/her name will turn blue).
+* 2) Write the message. 
+* 3) Press Enter or click the Send Button.
+
+**NB**:
+* You cannot send a message to yourself.
+* You cannot send a message to no one. 
+
+### View previous messages
+Just click on the user you had a discussion with, the previous messages should be displayed.
+
+## Sign out
+To properly sign out, just refresh the page. Then you can close the page.
+
+
+
 ## MongoDB collections
 
 ```js
