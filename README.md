@@ -55,9 +55,9 @@ First you have to sign in using a unique username.
 * You cannot sign in if you are already signed in with another session.
 
 ### Send messages
-* 1) Select the user you want to send the message to (his/her name will turn blue).
-* 2) Write the message. 
-* 3) Press Enter or click the Send Button.
+* (1) Select the user you want to send the message to (his/her name will turn blue).
+* (2) Write the message. 
+* (3) Press Enter or click the Send Button.
 
 **NB**:
 * You cannot send a message to yourself.
