@@ -145,7 +145,7 @@ db.messages.aggregate({$group:{_id: {to:"$to", from:"$from"}}}, {$group:{_id: 
 { "_id" : "jason", "nb_dinstinct_sender" : 2 }
 { "_id" : "george", "nb_dinstinct_sender" : 2 }
 ```
-**hour when people are more active**
+**Times (in hour) when people are most active**
 ```js
 >> IN
 db.connections.aggregate({$project : {hour : {$hour :"$loginDate"}}}, {$group:{_id:{hour:"$hour", count: {$sum:1}}}}, {$sort:{count:-1}})
