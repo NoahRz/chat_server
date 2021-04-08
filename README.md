@@ -66,7 +66,7 @@ First you have to sign in using a unique username.
 ### View previous messages
 Just click on the user you had a discussion with, the previous messages should be displayed.
 
-## Sign out
+### Sign out
 To properly sign out, just refresh the page. Then you can close the page.
 
 
